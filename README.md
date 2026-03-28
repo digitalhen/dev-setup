@@ -39,6 +39,12 @@ bash dev-setup/setupscript.sh
 - Admin password (for Homebrew installation)
 - An [Anthropic API key](https://console.anthropic.com/) or Claude subscription (Claude Code will prompt you on first run)
 
+## First Thing to Try
+
+Once Claude Code starts in the VS Code terminal, type:
+
+> **Build me a hello world webpage with HTML, CSS, and JavaScript**
+
 ## Re-running
 
 The script is idempotent — it skips anything already installed so you can safely run it again.

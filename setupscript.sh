@@ -294,8 +294,8 @@ else
     skip_msg "tasks.json already exists"
 fi
 
-# Open VS Code to the hello-world project
-code "$PROJECT_DIR"
+# Open VS Code to the hello-world project in a new window
+code --new-window "$PROJECT_DIR"
 
 done_msg "VS Code opened ~/Documents/Code/hello-world"
 echo -e "  ${Y}Note:${NC} VS Code may ask to allow automatic tasks. Click ${BOLD}\"Allow and Run\"${NC}."
@@ -316,6 +316,10 @@ echo -e "  ${BOLD}Extensions${NC}       Prettier, GitLens, Python, Claude Code, 
 echo -e "  ${BOLD}~/Documents/Code${NC} Your projects folder"
 echo -e "  ${BOLD}hello-world${NC}      Starter project (open in VS Code now)"
 echo -e "  ${BOLD}Terminal theme${NC}   Homebrew (green on black)"
+echo ""
+echo -e "  ${Y}Try this now:${NC} When Claude starts, type:"
+echo ""
+echo -e "    ${BOLD}Build me a hello world webpage with HTML, CSS, and JavaScript${NC}"
 echo ""
 echo -e "  ${Y}Next time:${NC} Just open VS Code and type ${BOLD}claude${NC} in the terminal"
 echo ""
