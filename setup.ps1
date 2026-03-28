@@ -4,7 +4,7 @@
 #  you need to start building with AI.
 #
 #  Run with:
-#    irm "https://raw.githubusercontent.com/digitalhen/dev-setup/main/setup.ps1" | iex
+#    irm "https://raw.githubusercontent.com/digitalhen/dev-setup/main/setup.ps1?$(Get-Date -UFormat %s)" | iex
 #
 #  Or clone and run:
 #    git clone https://github.com/digitalhen/dev-setup.git; .\dev-setup\setup.ps1

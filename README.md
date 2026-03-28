@@ -20,7 +20,7 @@ bash dev-setup/setupscript.sh
 ### Windows
 
 ```powershell
-irm "https://raw.githubusercontent.com/digitalhen/dev-setup/main/setup.ps1" | iex
+irm "https://raw.githubusercontent.com/digitalhen/dev-setup/main/setup.ps1?$(Get-Date -UFormat %s)" | iex
 ```
 
 Or clone and run:
