@@ -138,6 +138,7 @@ EXTENSIONS=(
     "bradlc.vscode-tailwindcss"      # Tailwind CSS
     "formulahendry.auto-rename-tag"  # Auto rename HTML tags
     "streetsidesoftware.code-spell-checker"  # Spell check
+    "ritwickdey.LiveServer"                  # Local dev server for HTML/CSS/JS
 )
 
 for ext in "${EXTENSIONS[@]}"; do

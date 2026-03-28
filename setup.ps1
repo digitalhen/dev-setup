@@ -138,6 +138,7 @@ if (Get-Command code -ErrorAction SilentlyContinue) {
         "bradlc.vscode-tailwindcss"
         "formulahendry.auto-rename-tag"
         "streetsidesoftware.code-spell-checker"
+        "ritwickdey.LiveServer"
     )
 
     foreach ($ext in $extensions) {
