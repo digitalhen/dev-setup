@@ -4,11 +4,14 @@
 #  One command to install Claude Code, VS Code, and everything
 #  you need to start building with AI.
 #
-#  Run with:  curl -sL YOUR_URL | bash
-#  Or save and run:  bash setup-dev-environment.sh
+#  Run with:
+#    curl -sL https://raw.githubusercontent.com/digitalhen/dev-setup/main/setupscript.sh | bash
+#
+#  Or clone and run:
+#    git clone https://github.com/digitalhen/dev-setup.git && bash dev-setup/setupscript.sh
 # ============================================================
 
-set -e
+set -euo pipefail
 
 # --- Pretty output ---
 G='\033[0;32m'  # Green
@@ -21,6 +24,13 @@ NC='\033[0m'    # No color
 step() { echo -e "\n${B}▸ $1${NC}"; }
 done_msg() { echo -e "  ${G}✓ $1${NC}"; }
 skip_msg() { echo -e "  ${Y}⊘ $1 (already installed)${NC}"; }
+warn_msg() { echo -e "  ${R}⚠ $1${NC}"; }
+
+# --- Require macOS ---
+if [[ "$(uname)" != "Darwin" ]]; then
+    echo -e "${R}This script is designed for macOS only.${NC}"
+    exit 1
+fi
 
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -36,12 +46,14 @@ step "Checking for Homebrew..."
 if ! command -v brew &> /dev/null; then
     echo -e "  Installing Homebrew (you may be asked for your password)..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # Add to PATH for Apple Silicon Macs
+    # Add to PATH for Apple Silicon Macs (avoid duplicate entries)
     if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
-        echo '' >> ~/.zprofile
-        echo '# Homebrew' >> ~/.zprofile
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        if ! grep -q 'opt/homebrew/bin/brew shellenv' ~/.zprofile 2>/dev/null; then
+            echo '' >> ~/.zprofile
+            echo '# Homebrew' >> ~/.zprofile
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        fi
     fi
     done_msg "Homebrew installed"
 else
@@ -75,11 +87,17 @@ fi
 if ! command -v code &> /dev/null; then
     VSCODE_BIN="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
     if [ -f "$VSCODE_BIN" ]; then
-        sudo ln -sf "$VSCODE_BIN" /usr/local/bin/code 2>/dev/null || true
+        # Try user-local bin first, fall back to sudo
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$VSCODE_BIN" "$HOME/.local/bin/code" 2>/dev/null || \
+            sudo ln -sf "$VSCODE_BIN" /usr/local/bin/code 2>/dev/null || true
+        export PATH="$HOME/.local/bin:$PATH"
+        done_msg "'code' command linked"
+    else
+        warn_msg "'code' command not found — open VS Code and run 'Shell Command: Install code' from the command palette"
     fi
-    done_msg "'code' command linked"
 else
-    done_msg "'code .' command is ready"
+    done_msg "'code' command is ready"
 fi
 
 # ----------------------------------------------------------
@@ -233,35 +251,51 @@ fi
 done_msg "VS Code terminal panel set to bottom"
 
 # ----------------------------------------------------------
-# 11. OPEN VS CODE & LAUNCH CLAUDE CODE IN ITS TERMINAL
+# 11. OPEN VS CODE WITH CLAUDE CODE IN THE TERMINAL
 # ----------------------------------------------------------
 step "Launching VS Code with Claude Code..."
 
+# Create a temporary VS Code workspace settings file that launches
+# Claude Code automatically in the integrated terminal
+WORKSPACE_DIR="$HOME/Documents/Code"
+WORKSPACE_VSCODE="$WORKSPACE_DIR/.vscode"
+mkdir -p "$WORKSPACE_VSCODE"
+
+# Set up a task that runs Claude on folder open (if not already configured)
+TASKS_FILE="$WORKSPACE_VSCODE/tasks.json"
+if [ ! -f "$TASKS_FILE" ]; then
+    cat > "$TASKS_FILE" << 'TASKS'
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Claude Code",
+      "type": "shell",
+      "command": "claude",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
+TASKS
+    done_msg "VS Code task configured to launch Claude on folder open"
+else
+    skip_msg "tasks.json already exists"
+fi
+
 # Open VS Code to the Code folder
-code "$HOME/Documents/Code"
+code "$WORKSPACE_DIR"
 
-# Wait for VS Code to finish loading
-sleep 4
-
-# Use AppleScript to:
-#   1. Bring VS Code to front
-#   2. Open the integrated terminal (Ctrl + `)
-#   3. Type 'claude' and press Enter
-osascript <<'APPLESCRIPT'
-tell application "Visual Studio Code" to activate
-delay 1.5
-tell application "System Events"
-    -- Toggle integrated terminal: Ctrl + `
-    key code 50 using {control down}
-    delay 1
-    -- Type 'claude' and hit Enter
-    keystroke "claude"
-    delay 0.3
-    key code 36
-end tell
-APPLESCRIPT
-
-done_msg "Claude Code launched inside VS Code"
+done_msg "VS Code opened — Claude Code will start in the terminal"
+echo -e "  ${Y}Note:${NC} VS Code may ask to allow automatic tasks. Click ${BOLD}\"Allow and Run\"${NC}."
 
 # ----------------------------------------------------------
 # DONE
@@ -274,7 +308,7 @@ echo ""
 echo -e "  ${BOLD}Homebrew${NC}         Package manager for Mac"
 echo -e "  ${BOLD}Node.js${NC}          Required for Claude Code"
 echo -e "  ${BOLD}VS Code${NC}          Code editor (in your Dock, panel at bottom)"
-echo -e "  ${BOLD}Claude Code${NC}      Running in VS Code's terminal right now"
+echo -e "  ${BOLD}Claude Code${NC}      Auto-launches when you open ~/Documents/Code"
 echo -e "  ${BOLD}Extensions${NC}       Prettier, GitLens, Python, Claude Code, + more"
 echo -e "  ${BOLD}~/Documents/Code${NC} Your project folder (open in VS Code)"
 echo -e "  ${BOLD}Terminal theme${NC}   Homebrew (green on black)"
