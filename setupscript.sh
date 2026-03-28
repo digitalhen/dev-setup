@@ -13,6 +13,12 @@
 
 set -u
 
+# When run via "curl | bash", stdin is the pipe. Redirect it to /dev/null
+# so commands like 'code' and 'npm' don't try to read from it.
+if [ ! -t 0 ]; then
+    exec </dev/tty || exec </dev/null
+fi
+
 # --- Pretty output ---
 G='\033[0;32m'  # Green
 B='\033[1;34m'  # Blue
