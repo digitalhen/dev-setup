@@ -92,8 +92,10 @@ if (Get-Command code -ErrorAction SilentlyContinue) {
 # 4. CLAUDE CODE (CLI + VS Code extension)
 # ----------------------------------------------------------
 Step "Installing Claude Code..."
-if (Get-Command npm -ErrorAction SilentlyContinue) {
-    & npm install -g @anthropic-ai/claude-code 2>&1 | Out-Null
+# Use npm.cmd to avoid execution policy blocking npm.ps1
+$npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
+if ($npmCmd) {
+    & npm.cmd install -g @anthropic-ai/claude-code 2>&1 | Out-Null
     Refresh-Path
     if (Get-Command claude -ErrorAction SilentlyContinue) {
         Done "Claude Code CLI installed"
