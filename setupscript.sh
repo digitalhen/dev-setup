@@ -5,7 +5,7 @@
 #  you need to start building with AI.
 #
 #  Run with:
-#    curl -sL https://raw.githubusercontent.com/digitalhen/dev-setup/main/setupscript.sh | bash
+#    curl -sL "https://raw.githubusercontent.com/digitalhen/dev-setup/main/setupscript.sh?$(date +%s)" | bash
 #
 #  Or clone and run:
 #    git clone https://github.com/digitalhen/dev-setup.git && bash dev-setup/setupscript.sh
@@ -112,11 +112,16 @@ code --install-extension anthropic.claude-code --force 2>/dev/null && \
     done_msg "Claude Code VS Code extension installed" || true
 
 # ----------------------------------------------------------
-# 5. CREATE CODE FOLDER
+# 5. CREATE CODE FOLDER & HELLO WORLD PROJECT
 # ----------------------------------------------------------
 step "Creating ~/Documents/Code folder..."
 mkdir -p "$HOME/Documents/Code"
 done_msg "~/Documents/Code is ready"
+
+step "Creating hello-world project..."
+PROJECT_DIR="$HOME/Documents/Code/hello-world"
+mkdir -p "$PROJECT_DIR"
+done_msg "~/Documents/Code/hello-world is ready"
 
 # ----------------------------------------------------------
 # 6. VS CODE EXTENSIONS
@@ -255,13 +260,11 @@ done_msg "VS Code terminal panel set to bottom"
 # ----------------------------------------------------------
 step "Launching VS Code with Claude Code..."
 
-# Create a temporary VS Code workspace settings file that launches
-# Claude Code automatically in the integrated terminal
-WORKSPACE_DIR="$HOME/Documents/Code"
-WORKSPACE_VSCODE="$WORKSPACE_DIR/.vscode"
+# Set up a VS Code task in the hello-world project that launches
+# Claude Code automatically when the folder is opened
+WORKSPACE_VSCODE="$PROJECT_DIR/.vscode"
 mkdir -p "$WORKSPACE_VSCODE"
 
-# Set up a task that runs Claude on folder open (if not already configured)
 TASKS_FILE="$WORKSPACE_VSCODE/tasks.json"
 if [ ! -f "$TASKS_FILE" ]; then
     cat > "$TASKS_FILE" << 'TASKS'
@@ -291,10 +294,10 @@ else
     skip_msg "tasks.json already exists"
 fi
 
-# Open VS Code to the Code folder
-code "$WORKSPACE_DIR"
+# Open VS Code to the hello-world project
+code "$PROJECT_DIR"
 
-done_msg "VS Code opened — Claude Code will start in the terminal"
+done_msg "VS Code opened ~/Documents/Code/hello-world"
 echo -e "  ${Y}Note:${NC} VS Code may ask to allow automatic tasks. Click ${BOLD}\"Allow and Run\"${NC}."
 
 # ----------------------------------------------------------
@@ -308,9 +311,10 @@ echo ""
 echo -e "  ${BOLD}Homebrew${NC}         Package manager for Mac"
 echo -e "  ${BOLD}Node.js${NC}          Required for Claude Code"
 echo -e "  ${BOLD}VS Code${NC}          Code editor (in your Dock, panel at bottom)"
-echo -e "  ${BOLD}Claude Code${NC}      Auto-launches when you open ~/Documents/Code"
+echo -e "  ${BOLD}Claude Code${NC}      Auto-launches in the hello-world project"
 echo -e "  ${BOLD}Extensions${NC}       Prettier, GitLens, Python, Claude Code, + more"
-echo -e "  ${BOLD}~/Documents/Code${NC} Your project folder (open in VS Code)"
+echo -e "  ${BOLD}~/Documents/Code${NC} Your projects folder"
+echo -e "  ${BOLD}hello-world${NC}      Starter project (open in VS Code now)"
 echo -e "  ${BOLD}Terminal theme${NC}   Homebrew (green on black)"
 echo ""
 echo -e "  ${Y}Next time:${NC} Just open VS Code and type ${BOLD}claude${NC} in the terminal"

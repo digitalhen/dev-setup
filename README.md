@@ -5,7 +5,7 @@ One command to set up a Mac for development with Claude Code, VS Code, and essen
 ## Quick Start
 
 ```bash
-curl -sL https://raw.githubusercontent.com/digitalhen/dev-setup/main/setupscript.sh | bash
+curl -sL "https://raw.githubusercontent.com/digitalhen/dev-setup/main/setupscript.sh?$(date +%s)" | bash
 ```
 
 Or clone and run:
@@ -30,8 +30,8 @@ bash dev-setup/setupscript.sh
 - **VS Code settings**: Terminal panel at bottom, zsh as default shell, Material Icon Theme
 - **Claude Code permissions**: Common read-only tools auto-allowed
 - **Terminal theme**: Homebrew (green on black)
-- **Project folder**: `~/Documents/Code` created and opened in VS Code
-- **Auto-launch**: Claude Code starts automatically when opening the project folder in VS Code
+- **Project folder**: `~/Documents/Code` created with a `hello-world` starter project
+- **Auto-launch**: Claude Code starts automatically when the hello-world project opens in VS Code
 
 ## Requirements
 
