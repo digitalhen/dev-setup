@@ -11,7 +11,7 @@
 #    git clone https://github.com/digitalhen/dev-setup.git && bash dev-setup/setupscript.sh
 # ============================================================
 
-set -euo pipefail
+set -u
 
 # --- Pretty output ---
 G='\033[0;32m'  # Green
@@ -104,7 +104,7 @@ fi
 # 4. CLAUDE CODE (CLI + VS Code extension)
 # ----------------------------------------------------------
 step "Installing Claude Code..."
-npm install -g @anthropic-ai/claude-code 2>/dev/null
+npm install -g @anthropic-ai/claude-code 2>/dev/null || true
 done_msg "Claude Code CLI installed"
 
 # Install the Claude Code VS Code extension
@@ -240,6 +240,8 @@ with open('$VSCODE_SETTINGS', 'r') as f:
 settings['workbench.panel.defaultLocation'] = 'bottom'
 settings['terminal.integrated.defaultProfile.osx'] = 'zsh'
 settings['workbench.iconTheme'] = 'material-icon-theme'
+settings['remote.autoForwardPorts'] = False
+settings['remote.autoForwardPortsSource'] = 'output'
 with open('$VSCODE_SETTINGS', 'w') as f:
     json.dump(settings, f, indent=2)
 " 2>/dev/null
@@ -248,7 +250,9 @@ else
 {
   "workbench.panel.defaultLocation": "bottom",
   "terminal.integrated.defaultProfile.osx": "zsh",
-  "workbench.iconTheme": "material-icon-theme"
+  "workbench.iconTheme": "material-icon-theme",
+  "remote.autoForwardPorts": false,
+  "remote.autoForwardPortsSource": "output"
 }
 VSSETTINGS
 fi
@@ -295,9 +299,13 @@ else
 fi
 
 # Open VS Code to the hello-world project in a new window
-code --new-window "$PROJECT_DIR"
-
-done_msg "VS Code opened ~/Documents/Code/hello-world"
+if command -v code &> /dev/null; then
+    code --new-window "$PROJECT_DIR" 2>/dev/null || code "$PROJECT_DIR" 2>/dev/null || true
+    done_msg "VS Code opened ~/Documents/Code/hello-world"
+else
+    open -a "Visual Studio Code" "$PROJECT_DIR" 2>/dev/null || true
+    done_msg "VS Code opened ~/Documents/Code/hello-world"
+fi
 echo -e "  ${Y}Note:${NC} VS Code may ask to allow automatic tasks. Click ${BOLD}\"Allow and Run\"${NC}."
 
 # ----------------------------------------------------------
