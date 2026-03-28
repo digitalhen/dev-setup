@@ -35,10 +35,11 @@ if ($env:OS -ne "Windows_NT") {
 }
 
 Write-Host ""
-Write-Host ([char]0x2501 * 53) -ForegroundColor White
+$rule = [string]::new([char]0x2501, 53)
+Write-Host $rule -ForegroundColor White
 Write-Host "  Dev Environment Setup" -ForegroundColor White
 Write-Host "  Claude Code + VS Code + everything you need" -ForegroundColor White
-Write-Host ([char]0x2501 * 53) -ForegroundColor White
+Write-Host $rule -ForegroundColor White
 Write-Host ""
 
 # ----------------------------------------------------------
@@ -91,12 +92,16 @@ if (Get-Command code -ErrorAction SilentlyContinue) {
 # 4. CLAUDE CODE (CLI + VS Code extension)
 # ----------------------------------------------------------
 Step "Installing Claude Code..."
-try {
-    npm install -g @anthropic-ai/claude-code 2>$null | Out-Null
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    & npm install -g @anthropic-ai/claude-code 2>&1 | Out-Null
     Refresh-Path
-    Done "Claude Code CLI installed"
-} catch {
-    Warn "Could not install Claude Code CLI. Make sure Node.js and npm are on your PATH."
+    if (Get-Command claude -ErrorAction SilentlyContinue) {
+        Done "Claude Code CLI installed"
+    } else {
+        Warn "npm install ran but 'claude' not found on PATH. Try restarting your terminal."
+    }
+} else {
+    Warn "npm not found. Make sure Node.js is installed and on your PATH."
 }
 
 if (Get-Command code -ErrorAction SilentlyContinue) {
@@ -282,9 +287,9 @@ Write-Host "." -ForegroundColor Yellow
 # DONE
 # ----------------------------------------------------------
 Write-Host ""
-Write-Host ([char]0x2501 * 53) -ForegroundColor White
+Write-Host $rule -ForegroundColor White
 Write-Host "  All done! Here's what was set up:" -ForegroundColor Green
-Write-Host ([char]0x2501 * 53) -ForegroundColor White
+Write-Host $rule -ForegroundColor White
 Write-Host ""
 Write-Host "  Node.js          " -ForegroundColor White -NoNewline; Write-Host "Required for Claude Code"
 Write-Host "  VS Code          " -ForegroundColor White -NoNewline; Write-Host "Code editor (panel at bottom)"
