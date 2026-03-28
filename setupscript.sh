@@ -300,7 +300,7 @@ fi
 
 # Open VS Code to the hello-world project in a new window
 if command -v code &> /dev/null; then
-    code --new-window "$PROJECT_DIR" 2>/dev/null || code "$PROJECT_DIR" 2>/dev/null || true
+    code --new-window "$PROJECT_DIR" &>/dev/null || code "$PROJECT_DIR" &>/dev/null || true
     done_msg "VS Code opened ~/Documents/Code/hello-world"
 else
     open -a "Visual Studio Code" "$PROJECT_DIR" 2>/dev/null || true
