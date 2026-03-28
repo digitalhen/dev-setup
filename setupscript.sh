@@ -13,11 +13,6 @@
 
 set -u
 
-# When run via "curl | bash", stdin is the pipe. Redirect it to /dev/null
-# so commands like 'code' and 'npm' don't try to read from it.
-if [ ! -t 0 ]; then
-    exec </dev/tty || exec </dev/null
-fi
 
 # --- Pretty output ---
 G='\033[0;32m'  # Green
@@ -110,7 +105,7 @@ fi
 # 4. CLAUDE CODE (CLI + VS Code extension)
 # ----------------------------------------------------------
 step "Installing Claude Code..."
-npm install -g @anthropic-ai/claude-code 2>/dev/null || true
+npm install -g @anthropic-ai/claude-code </dev/null 2>/dev/null || true
 done_msg "Claude Code CLI installed"
 
 # Install the Claude Code VS Code extension
@@ -306,10 +301,10 @@ fi
 
 # Open VS Code to the hello-world project in a new window
 if command -v code &> /dev/null; then
-    code --new-window "$PROJECT_DIR" &>/dev/null || code "$PROJECT_DIR" &>/dev/null || true
+    code --new-window "$PROJECT_DIR" </dev/null &>/dev/null || code "$PROJECT_DIR" </dev/null &>/dev/null || true
     done_msg "VS Code opened ~/Documents/Code/hello-world"
 else
-    open -a "Visual Studio Code" "$PROJECT_DIR" 2>/dev/null || true
+    open -a "Visual Studio Code" "$PROJECT_DIR" </dev/null &>/dev/null || true
     done_msg "VS Code opened ~/Documents/Code/hello-world"
 fi
 echo -e "  ${Y}Note:${NC} VS Code may ask to allow automatic tasks. Click ${BOLD}\"Allow and Run\"${NC}."
