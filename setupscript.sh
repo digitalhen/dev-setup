@@ -48,10 +48,14 @@ echo ""
 step "Checking for Homebrew..."
 if ! command -v brew &> /dev/null; then
     echo -e "  Installing Homebrew (you may be asked for your password)..."
-    # NONINTERACTIVE=1 skips Homebrew's "press ENTER to continue" prompt.
-    # < /dev/tty gives sudo access to the real terminal for the password prompt
-    # (since stdin is a pipe when run via curl | bash).
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
+    # Pre-cache sudo credentials so Homebrew's installer doesn't need to prompt.
+    # We do this ourselves because NONINTERACTIVE=1 makes Homebrew skip its own
+    # sudo prompt, and < /dev/tty gives us access to the real terminal for the
+    # password (since stdin is a pipe when run via curl | bash).
+    sudo -v < /dev/tty
+    # NONINTERACTIVE=1 skips Homebrew's "press ENTER to continue" confirmation.
+    # sudo is already cached, so it won't need to prompt again.
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     # Add to PATH for Apple Silicon Macs (avoid duplicate entries)
     if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
