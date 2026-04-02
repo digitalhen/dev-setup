@@ -48,10 +48,10 @@ echo ""
 step "Checking for Homebrew..."
 if ! command -v brew &> /dev/null; then
     echo -e "  Installing Homebrew (you may be asked for your password)..."
-    # When this script is piped (curl | bash), stdin is the pipe, not the
-    # terminal, so Homebrew can't prompt for a password. Redirect its stdin
-    # from /dev/tty to give it access to the real terminal.
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
+    # NONINTERACTIVE=1 skips Homebrew's "press ENTER to continue" prompt.
+    # < /dev/tty gives sudo access to the real terminal for the password prompt
+    # (since stdin is a pipe when run via curl | bash).
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
     # Add to PATH for Apple Silicon Macs (avoid duplicate entries)
     if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
