@@ -25,7 +25,9 @@ NC='\033[0m'    # No color
 step() { echo -e "\n${B}▸ $1${NC}"; }
 done_msg() { echo -e "  ${G}✓ $1${NC}"; }
 skip_msg() { echo -e "  ${Y}⊘ $1 (already installed)${NC}"; }
-warn_msg() { echo -e "  ${R}⚠ $1${NC}"; }
+warn_msg() { echo -e "  ${Y}⚠ $1${NC}"; }
+fail_msg() { echo -e "  ${R}✗ $1${NC}"; }
+fatal() { echo -e "\n${R}${BOLD}  ERROR: $1${NC}"; echo -e "  ${R}$2${NC}"; exit 1; }
 
 # --- Require macOS ---
 if [[ "$(uname)" != "Darwin" ]]; then
@@ -46,7 +48,10 @@ echo ""
 step "Checking for Homebrew..."
 if ! command -v brew &> /dev/null; then
     echo -e "  Installing Homebrew (you may be asked for your password)..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # When this script is piped (curl | bash), stdin is the pipe, not the
+    # terminal, so Homebrew can't prompt for a password. Redirect its stdin
+    # from /dev/tty to give it access to the real terminal.
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
     # Add to PATH for Apple Silicon Macs (avoid duplicate entries)
     if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -56,7 +61,13 @@ if ! command -v brew &> /dev/null; then
             echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
         fi
     fi
-    done_msg "Homebrew installed"
+    # Verify it actually installed
+    if command -v brew &> /dev/null; then
+        done_msg "Homebrew installed"
+    else
+        fatal "Homebrew installation failed." \
+              "Try running this script again, or install Homebrew manually: https://brew.sh"
+    fi
 else
     skip_msg "Homebrew"
 fi
@@ -66,8 +77,13 @@ fi
 # ----------------------------------------------------------
 step "Checking for Node.js..."
 if ! command -v node &> /dev/null; then
-    brew install node
-    done_msg "Node.js $(node -v) installed"
+    brew install node </dev/null
+    if command -v node &> /dev/null; then
+        done_msg "Node.js $(node -v) installed"
+    else
+        fatal "Node.js installation failed." \
+              "Try: brew install node"
+    fi
 else
     NODE_VER=$(node -v)
     skip_msg "Node.js $NODE_VER"
@@ -78,8 +94,13 @@ fi
 # ----------------------------------------------------------
 step "Checking for VS Code..."
 if [ ! -d "/Applications/Visual Studio Code.app" ]; then
-    brew install --cask visual-studio-code
-    done_msg "VS Code installed"
+    brew install --cask visual-studio-code </dev/null
+    if [ -d "/Applications/Visual Studio Code.app" ]; then
+        done_msg "VS Code installed"
+    else
+        fatal "VS Code installation failed." \
+              "Try: brew install --cask visual-studio-code"
+    fi
 else
     skip_msg "VS Code"
 fi
@@ -105,12 +126,21 @@ fi
 # 4. CLAUDE CODE (CLI + VS Code extension)
 # ----------------------------------------------------------
 step "Installing Claude Code..."
-npm install -g @anthropic-ai/claude-code </dev/null 2>/dev/null || true
-done_msg "Claude Code CLI installed"
+if npm install -g @anthropic-ai/claude-code </dev/null 2>/dev/null; then
+    done_msg "Claude Code CLI installed"
+else
+    fatal "Claude Code installation failed." \
+          "Try: npm install -g @anthropic-ai/claude-code"
+fi
 
 # Install the Claude Code VS Code extension
-code --install-extension anthropic.claude-code --force 2>/dev/null && \
-    done_msg "Claude Code VS Code extension installed" || true
+if command -v code &> /dev/null; then
+    if code --install-extension anthropic.claude-code --force 2>/dev/null; then
+        done_msg "Claude Code VS Code extension installed"
+    else
+        warn_msg "Could not install Claude Code VS Code extension — install it manually from the Extensions panel"
+    fi
+fi
 
 # ----------------------------------------------------------
 # 5. CREATE CODE FOLDER & HELLO WORLD PROJECT
@@ -141,10 +171,17 @@ EXTENSIONS=(
     "ritwickdey.LiveServer"                  # Local dev server for HTML/CSS/JS
 )
 
-for ext in "${EXTENSIONS[@]}"; do
-    code --install-extension "$ext" --force 2>/dev/null && \
-        done_msg "$ext" || true
-done
+if command -v code &> /dev/null; then
+    for ext in "${EXTENSIONS[@]}"; do
+        if code --install-extension "$ext" --force 2>/dev/null; then
+            done_msg "$ext"
+        else
+            warn_msg "Failed to install $ext"
+        fi
+    done
+else
+    warn_msg "Skipping extensions — 'code' command not available"
+fi
 
 # ----------------------------------------------------------
 # 7. CONFIGURE CLAUDE CODE - Allow non-destructive commands
